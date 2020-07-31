@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from .models import Topic, Entry
@@ -23,6 +23,9 @@ def topics(request):
 def topic(request, topic_id):
     """Выводит одну тему и все её записи"""
     topic = Topic.objects.get(id=topic_id)
+    # Проверка того, что тема принадлежит текущему пользователю
+    if topic.owner != request.user:
+        raise Http404
     entries = topic.entry_set.order_by('-date_added')
     context = {'topic': topic, 'entries': entries}
     return render(request, 'learning_logs/topic.html', context)
